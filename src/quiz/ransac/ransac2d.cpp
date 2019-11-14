@@ -68,21 +68,18 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 	srand(time(NULL));
 	
 	// TODO: Fill in this function
-	for (int i=0; i++; i<maxIterations)
+	for (int i=0; i<maxIterations; i++)
 	{
 		std::unordered_set<int> inliers;
 		pcl::PointXYZ point1 = cloud->points[rand()%(cloud->points.size())];
 		pcl::PointXYZ point2 = cloud->points[rand()%(cloud->points.size())];
-		std::cout << "point1:" << point1 << std::endl;
 		float lineCoeffA = point1.y - point2.y;
 		float lineCoeffB = point2.x - point1.x;
 		float lineCoeffC = point2.y*point1.x - point1.y*point2.x;
-		std::cout << "C: " << lineCoeffC << std::endl;
 		for(int index = 0; index < cloud->points.size(); index++)
 		{
 			pcl::PointXYZ point = cloud->points[index];
 			float distance = fabs(lineCoeffA*point.x+lineCoeffB*point.y+lineCoeffC)/sqrt(lineCoeffA*lineCoeffA+lineCoeffB*lineCoeffB);
-			std::cout << "Distance: " << distance << std::endl;
 			if (distance < distanceTol)
 			{
 				inliers.insert(index);
@@ -91,7 +88,6 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 		if (inliers.size()>inliersResult.size())
 		{
 			inliersResult=inliers;
-			std::cout << "New set of inliers" << std::endl;
 		}
 	}
 
