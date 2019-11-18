@@ -28,12 +28,42 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
     auto startTime = std::chrono::steady_clock::now();
 
     // TODO:: Fill in the function to do voxel grid point reduction and region based filtering
+	// Create the filtering object
+	typename pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>());
+    pcl::VoxelGrid<PointT> sor;
+    sor.setInputCloud (cloud);
+    sor.setLeafSize (filterRes, filterRes, filterRes);
+    sor.filter (*cloud_filtered);
+
+	typename pcl::PointCloud<PointT>::Ptr cloud_cropped (new pcl::PointCloud<PointT>());
+	pcl::CropBox<PointT> roi;
+	roi.setMin(minPoint);
+	roi.setMax(maxPoint);
+	roi.setInputCloud(cloud_filtered);
+	roi.filter(*cloud_cropped);
+
+	std::vector<int> indices;
+	pcl::CropBox<PointT> roof;
+	roof.setMin(Eigen::Vector4f (-1.5,-1.7,-1,1));
+	roof.setMax(Eigen::Vector4f (2.6,1.7,-0.4,1));
+	roof.setInputCloud(cloud_cropped);
+	roof.filter(indices);
+
+	pcl::PointIndices::Ptr inliers (new pcl::PointIndices());
+	for (int index: indices)
+		inliers->indices.push_back(index);
+
+	pcl::ExtractIndices<PointT> extract;
+    extract.setInputCloud(cloud_cropped);
+    extract.setIndices(inliers);
+    extract.setNegative(true);
+    extract.filter(*cloud_cropped);    
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
 
-    return cloud;
+    return cloud_cropped;
 
 }
 
@@ -119,7 +149,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 
     for(int index = 0; index < cloud->points.size(); index++)
 	{
-		pcl::PointXYZ point = cloud->points[index];
+		PointT point = cloud->points[index];
 		if(inliers.count(index))
 			roadCloud->points.push_back(point);
 		else
@@ -198,7 +228,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 			if (inliers.count(index)>0)
 				continue;
 
-			pcl::PointXYZ point = cloud->points[index];
+			PointT point = cloud->points[index];
 			float distance = fabs(A*point.x+B*point.y+C*point.z+D)/sqrt(A*A+B*B+C*C);
 			if (distance < distanceThreshold)
 			{
