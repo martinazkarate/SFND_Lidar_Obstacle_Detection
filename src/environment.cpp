@@ -82,7 +82,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
   ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
   pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
   // Experiment with the ? values and find what works best
-  pcl::PointCloud<pcl::PointXYZI>::Ptr filterCloud = pointProcessorI->FilterCloud(inputCloud, 0.5 , Eigen::Vector4f (-15.0, -6.0, -3.0, 1), Eigen::Vector4f ( 30.0, 7.0, 0.0, 1));
+  pcl::PointCloud<pcl::PointXYZI>::Ptr filterCloud = pointProcessorI->FilterCloud(inputCloud, 0.25 , Eigen::Vector4f (-15.0, -6.0, -3.0, 1), Eigen::Vector4f ( 30.0, 7.0, 0.0, 1));
   renderPointCloud(viewer,filterCloud,"filterCloud");
   Box box;
   box.x_min = -1.5;
@@ -91,11 +91,26 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
   box.x_max = 2.6;
   box.y_max = 1.7;
   box.z_max = -0.4;
-  renderBox(viewer,box,0,Color(1,0,1),0.25);
+  renderBox(viewer,box,-1,Color(1,0,1),0.25);
   //renderPointCloud(viewer,inputCloud,"inputCloud");
   std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud,100,0.2);
-  renderPointCloud(viewer,segmentCloud.first,"obstacleCloud",Color(1,0,0));
+  //renderPointCloud(viewer,segmentCloud.first,"obstacleCloud",Color(1,0,0));
   renderPointCloud(viewer,segmentCloud.second,"roadCloud",Color(0,1,0));
+  
+  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(segmentCloud.first, 0.5, 5, 300);
+
+  int clusterId = 0;
+  std::vector<Color> colors = {Color(1,0,0), Color(1,1,0), Color(0,0,1)};
+
+    for(pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : cloudClusters)
+    {
+      std::cout << "cluster size ";
+      pointProcessorI->numPoints(cluster);
+      renderPointCloud(viewer,cluster,"obstCloud"+std::to_string(clusterId),colors[clusterId%colors.size()]);
+      Box box = pointProcessorI->BoundingBox(cluster);
+      renderBox(viewer,box,clusterId);
+      ++clusterId;
+    }
 }
 
 
