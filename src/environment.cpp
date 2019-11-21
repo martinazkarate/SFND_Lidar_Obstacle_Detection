@@ -7,6 +7,7 @@
 #include "processPointClouds.h"
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
+//#include "kdtree.h"
 
 std::vector<Car> initHighway(bool renderScene, pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
@@ -97,8 +98,14 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
   std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud,100,0.2);
   //renderPointCloud(viewer,segmentCloud.first,"obstacleCloud",Color(1,0,0));
   renderPointCloud(viewer,segmentCloud.second,"roadCloud",Color(0,1,0));
+
+  KdTree* tree = new KdTree;
   
-  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(segmentCloud.first, 0.5, 5, 300);
+  for (int i=0; i<segmentCloud.first->points.size(); i++) 
+   	tree->insert({segmentCloud.first->points[i].x,segmentCloud.first->points[i].y,segmentCloud.first->points[i].z},i); 
+    
+  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->euclideanCluster(segmentCloud.first, tree, 0.5);
+  //std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->Clustering(segmentCloud.first, 0.5, 5, 300);
 
   int clusterId = 0;
   std::vector<Color> colors = {Color(1,0,0), Color(1,1,0), Color(0,0,1)};
