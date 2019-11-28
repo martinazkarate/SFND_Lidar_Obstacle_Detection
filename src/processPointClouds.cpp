@@ -265,8 +265,10 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::e
 }
 
 template<typename PointT>
-void ProcessPointClouds<PointT>::clusterRecursive(typename pcl::PointCloud<PointT>::Ptr cloud, KdTree* tree, float distanceTol, typename pcl::PointCloud<PointT>::Ptr clusterCloud, std::vector<bool>& processedPoints, int index)
+void ProcessPointClouds<PointT>::clusterRecursive(typename pcl::PointCloud<PointT>::Ptr cloud, KdTree* tree, float distanceTol, typename pcl::PointCloud<PointT>::Ptr clusterCloud, std::vector<bool>& processedPoints, int index, int maxSize)
 {
+	if (clusterCloud->points.size()<maxSize)
+	{
 	processedPoints[index]=true;
 	clusterCloud->points.push_back(cloud->points[index]);
 	std::vector<float> point = {cloud->points[index].x,cloud->points[index].y,cloud->points[index].z};
@@ -274,12 +276,13 @@ void ProcessPointClouds<PointT>::clusterRecursive(typename pcl::PointCloud<Point
 	for(int index2 : nearby)
 	{
 		if (!processedPoints[index2])
-			clusterRecursive(cloud, tree, distanceTol, clusterCloud, processedPoints, index2);
+			clusterRecursive(cloud, tree, distanceTol, clusterCloud, processedPoints, index2, maxSize);
+	}
 	}
 }
 
 template<typename PointT>
-std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::euclideanCluster(typename pcl::PointCloud<PointT>::Ptr cloud, float distanceTol)
+std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::euclideanCluster(typename pcl::PointCloud<PointT>::Ptr cloud, float distanceTol, int minSize, int maxSize)
 {
 	// Time clustering process
     auto startTime = std::chrono::steady_clock::now();
@@ -297,8 +300,9 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::e
 		if (!processedPoints[index])
 		{
 			typename pcl::PointCloud<PointT>::Ptr clusterCloud (new pcl::PointCloud<PointT>);
-			clusterRecursive(cloud, tree, distanceTol, clusterCloud, processedPoints, index);
-			clusters.push_back(clusterCloud);
+			clusterRecursive(cloud, tree, distanceTol, clusterCloud, processedPoints, index, maxSize);
+			if (clusterCloud->points.size()>minSize)
+				clusters.push_back(clusterCloud);
 		}
 		index++;
 	}

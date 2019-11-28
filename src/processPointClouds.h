@@ -49,9 +49,9 @@ public:
 
     std::vector<boost::filesystem::path> streamPcd(std::string dataPath);
 
-    void clusterRecursive(typename pcl::PointCloud<PointT>::Ptr cloud, KdTree* tree, float distanceTol, typename pcl::PointCloud<PointT>::Ptr clusterCloud, std::vector<bool>& processedPoints, int index);
+    void clusterRecursive(typename pcl::PointCloud<PointT>::Ptr cloud, KdTree* tree, float distanceTol, typename pcl::PointCloud<PointT>::Ptr clusterCloud, std::vector<bool>& processedPoints, int index, int maxSize);
 
-    std::vector<typename pcl::PointCloud<PointT>::Ptr> euclideanCluster(typename pcl::PointCloud<PointT>::Ptr cloud, float distanceTol);
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> euclideanCluster(typename pcl::PointCloud<PointT>::Ptr cloud, float distanceTol, int minSize, int maxSize);
     std::vector<typename pcl::PointCloud<PointT>::Ptr> euclideanClusterPCL(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize);
   
 };

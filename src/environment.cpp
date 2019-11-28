@@ -30,12 +30,12 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
   renderCarBox(viewer);
 
   //* Segment road plane from Cloud and render it (option to render also the rest of separated obstacle cloud) *//
-  std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud,100,0.2);
+  std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud,50,0.2);
   renderPointCloud(viewer,segmentCloud.second,"roadCloud",Color(0,1,0));
   //renderPointCloud(viewer,segmentCloud.first,"obstacleCloud",Color(1,0,0));
     
   //* Call clustering function to identify different cars and separate them in a vector of Point Clouds (option to call PCL library function) *//  
-  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->euclideanCluster(segmentCloud.first, 0.5);
+  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->euclideanCluster(segmentCloud.first, 0.5, 5, 300);
   //std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloudClusters = pointProcessorI->euclideanClusterPCL(segmentCloud.first, 0.5, 5, 300);
 
   int clusterId = 0;
