@@ -153,30 +153,40 @@ std::unordered_set<int> ProcessPointClouds<PointT>::RansacPlane(typename pcl::Po
 			inliers.insert(rand()%(cloud->points.size()));
 
 		auto itr = inliers.begin();
-		float x1, y1, z1, x2, y2, z2, x3, y3, z3;
+		//float x1, y1, z1, x2, y2, z2, x3, y3, z3;
+		Eigen::Vector3f point1 = {cloud->points[*itr].x,cloud->points[*itr].y,cloud->points[*itr].z};
+		//x1 = cloud->points[*itr].x;
+		//y1 = cloud->points[*itr].y;
+		//z1 = cloud->points[*itr].z;
+		itr++;
+		Eigen::Vector3f point2 = {cloud->points[*itr].x,cloud->points[*itr].y,cloud->points[*itr].z};
+		//x2 = cloud->points[*itr].x;
+		//y2 = cloud->points[*itr].y;
+		//z2 = cloud->points[*itr].z;
+		itr++;
+		Eigen::Vector3f point3 = {cloud->points[*itr].x,cloud->points[*itr].y,cloud->points[*itr].z};
+		//x3 = cloud->points[*itr].x;
+		//y3 = cloud->points[*itr].y;
+		//z3 = cloud->points[*itr].z;
+		//itr++;
 
-		x1 = cloud->points[*itr].x;
-		y1 = cloud->points[*itr].y;
-		z1 = cloud->points[*itr].z;
-		itr++;
-		x2 = cloud->points[*itr].x;
-		y2 = cloud->points[*itr].y;
-		z2 = cloud->points[*itr].z;
-		itr++;
-		x3 = cloud->points[*itr].x;
-		y3 = cloud->points[*itr].y;
-		z3 = cloud->points[*itr].z;
-		itr++;
+		Eigen::Vector3f vector12 = point2-point1;
+		Eigen::Vector3f vector13 = point3-point1;
 
-		float A = (y2-y1)*(z3-z1)-(z2-z1)*(y3-y1);
-		float B = (z2-z1)*(x3-x1)-(x2-x1)*(z3-z1);
-		float C = (x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
+		Eigen::Vector3f vectorPlane = vector12.cross(vector13);
+
+		//float A = (y2-y1)*(z3-z1)-(z2-z1)*(y3-y1);
+		//float B = (z2-z1)*(x3-x1)-(x2-x1)*(z3-z1);
+		//float C = (x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
 		
 		// Ensure cross product is not null (when 3 random points happen to be in line and do not define a plane)
-		if (A==0 && B==0 && C==0)
+		float norm =vectorPlane.norm();
+		if (norm == 0)
+		//if (A==0 && B==0 && C==0)
 			continue;
 
-		float D = -(A*x1+B*y1+C*z1);
+		//float D = -(A*x1+B*y1+C*z1);
+		float D = -vectorPlane.dot(point1);
 
 		for(int index = 0; index < cloud->points.size(); index++)
 		{
@@ -184,8 +194,10 @@ std::unordered_set<int> ProcessPointClouds<PointT>::RansacPlane(typename pcl::Po
 			if (inliers.count(index)>0)
 				continue;
 
-			PointT point = cloud->points[index];
-			float distance = fabs(A*point.x+B*point.y+C*point.z+D)/sqrt(A*A+B*B+C*C);
+			//PointT point = cloud->points[index];
+			Eigen::Vector3f point = {cloud->points[index].x,cloud->points[index].y,cloud->points[index].z};
+			//float distance = fabs(A*point.x+B*point.y+C*point.z+D)/sqrt(A*A+B*B+C*C);
+			float distance = fabs(vectorPlane.dot(point)+D)/norm;
 			if (distance < distanceTol)
 			{
 				inliers.insert(index);
