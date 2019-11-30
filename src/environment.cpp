@@ -81,6 +81,24 @@ int main (int argc, char** argv)
 {
     std::cout << "starting enviroment" << std::endl;
 
+    /*
+    int num_args = argc;
+    if (num_args!=5)
+    {
+        std::cerr << "Wrong number of arguments passed in line. Exiting now." << std::endl;
+        return -1;
+    }
+    std::string exec_name = argv[0];
+    std::string first_arg = argv[1];
+    std::string second_arg = argv[2];
+    std::string third_arg = argv[3];
+    std::string fourth_arg = argv[4];
+    int use_pcl=int(first_arg);
+    float voxel_leaf_size=float(second_arg);
+    int ransac_iter=int(third_arg);
+    float cluster_dist=float(fourth_arg);
+    */
+
     pcl::visualization::PCLVisualizer::Ptr viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
     CameraAngle setAngle = XY;
     initCamera(setAngle, viewer);
